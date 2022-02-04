@@ -151,15 +151,15 @@ class PLAYER(HUMAN):
 		try:
 			new_cloth['head'] = cloth['head'].__dict__
 		except:
-			new_cloth['head'] = None
+			pass
 		try:
 			new_cloth['body'] = cloth['body'].__dict__
 		except:
-			new_cloth['body'] = None
+			pass
 		try:
 			new_cloth['legs'] = cloth['legs'].__dict__
 		except:
-			new_cloth['legs'] = None
+			pass
 
 		# sett new clothes string
 		string['clothes'] = new_cloth

@@ -41,7 +41,7 @@ def AddNewPLayerToDB(player_id):
                          TOOL(10, 'tool.junk_sword', 'common', 1, False, 0, True,
                             1000, 1000, 2, 'slash', 'short'),
                          CLOTHES(20, 'clothes.junk_chestplate', 'common', 1, False, 0, True,
-                                 1000, 1000, 1)]
+                                 1000, 1000, 1, 'body')]
         new_player = PLAYER(10, 10, 0, 'player', 0,
                             {'dexterity': 1, 'physique': 1, 'intelligence': 1}, 'Player', 10, new_inventory)
         new_player_string = new_player.get_string()
@@ -122,13 +122,19 @@ def GetPlayerFromDB(player_id):
         # creating class objects of class CLOTHES from clothes dict
         item_clothes = json.loads(data[9])
         clothes = {'head': None, 'body': None, 'legs': None}
-        for key, item in item_clothes:
-            cloth_classed = CLOTHES(item['id_'], item['type_'], item['rarity'],
-                                    item['amount'], item['is_stackable'], item['lvl'],
-                                    item['is_breakable'], item['durability'], item['max_durability'],
-                                    item['resist'], item['resist_list'], item['enchant'],
-                                    item['bonuses'])
+        for key in list(item_clothes):
+            item = item_clothes[key]
+            if item is not None:
+                cloth_classed = CLOTHES(item['id_'], item['type_'], item['rarity'],
+                                        item['amount'], item['is_stackable'], item['lvl'],
+                                        item['is_breakable'], item['durability'], item['max_durability'],
+                                        item['resist'], item['resist_list'], item['enchant'],
+                                        item['bonuses'])
+            else:
+                cloth_classed = None
             clothes[key] = cloth_classed
+
+        # creating class object PLAYER
         player = PLAYER(data[3], data[4], data[1], 'player', data[5], json.loads(data[10]), 'Player', data[6],
                         inventory, tool, clothes, data[2], json.loads(data[11]),
                         json.loads(data[12]))
@@ -163,21 +169,39 @@ def RewritePLayerDataInDB(player_id, player):
 
 
 def EquipTool(player_id, player, item_id):
+    """Equip any tool from inventory"""
     for item in player.inventory:
-        if item.id_ == item_id:
-            if player.tool == {}:
-                player.tool = item
-                player.inventory.remove(item)
+        if item.id_ == item_id: # is there item ith this id
+            if item.type_.split('.')[0] == 'tool': # is it a tool
+                if player.lvl >= item.lvl: # does can equip it
+                    if player.tool != {}:
+                        player.inventory.append(player.tool)
+                    player.tool = item
+                    player.inventory.remove(item)
+
+                    RewritePLayerDataInDB(player_id, player) # save changes
+                    return 0  # success
+                else:
+                    return 3 # lvl of item bigger than player lvl
             else:
-                player.inventory.append(player.tool)
-                player.tool = item
-                player.inventory.remove(item)
-
-            RewritePLayerDataInDB(player_id, player)
-
-            return 0 # success
+                return 2 # cant equip not a tool
     return 1 # in case there no item with this id in inventory
 
 
-def Equipa
+def EquipClothes(player_id, player, item_id):
+    """Equip any clothes from inventory"""
+    for item in player.inventory:
+        if item.id_ == item_id: # is there item ith this id
+            if item.type_.split('.')[0] == 'clothes': # is it a tool
+                if player.lvl >= item.lvl: # does can equip it
+                    if player.clothes[item.body_part] is not None:
+                        player.inventory.append(player.clothes[item.body_part])
+                    player.clothes[item.body_part] = item
+                    player.inventory.remove(item)
 
+                    RewritePLayerDataInDB(player_id, player) # save changes
+                else:
+                    return 3 # lvl of item bigger than player lvl
+            else:
+                return 2 # cant equip not a clothes
+    return 1 # in case there no item with this id in inventory
