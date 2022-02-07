@@ -43,7 +43,7 @@ def AddNewPLayerToDB(player_id):
                          CLOTHES(20, 'clothes.Junk chestplate', 'common', 1, False, 0, True,
                                  1000, 1000, 2, 'body')]
         new_player = PLAYER(10, 10, 0, 'player', 0,
-                            {'dexterity': 1, 'physique': 1, 'intelligence': 1}, 'Player', 10, new_inventory)
+                            {'dexterity': 1, 'physique': 1, 'intelligence': 1}, 'Player', 10, new_inventory, 0)
         new_player_string = new_player.get_string()
         sql.execute(f"INSERT INTO users VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (player_id, new_player_string['lvl'],
@@ -69,18 +69,20 @@ def AddNewPLayerToDB(player_id):
 def GetPlayerFromDB(player_id):
     """Extruding player from db and creating class PLAYER"""
 
-    db = sqlite3.connect('db_player.db')
-    sql = db.cursor()
-
-    sql.execute(f"SELECT id FROM users WHERE id = '{player_id}'")
-    if sql.fetchone() is None:
-        print('User with this id doesnt exist')
-    else:
-        data = []
-        for i in sql.execute(f"SELECT * FROM users WHERE (id = '{player_id}')").fetchone():
-            data.append(i)
-
-        print(data)
+    data = getDataFromDb('users', "db_player.db", player_id)
+    # db = sqlite3.connect('db_player.db')
+    # sql = db.cursor()
+    #
+    # sql.execute(f"SELECT id FROM users WHERE id = '{player_id}'")
+    # if sql.fetchone() is None:
+    #     print('User with this id doesnt exist')
+    # else:
+    #     data = []
+    #     for i in sql.execute(f"SELECT * FROM users WHERE (id = '{player_id}')").fetchone():
+    #         data.append(i)
+    #
+    #     print(data)
+    if data is not None:
 
         # creating a list of classes from list of dict of items
         inv = json.loads(data[7])
@@ -136,10 +138,12 @@ def GetPlayerFromDB(player_id):
 
         # creating class object PLAYER
         player = PLAYER(data[3], data[4], data[1], 'player', data[5], json.loads(data[10]), 'Player', data[6],
-                        inventory, tool, clothes, data[2], json.loads(data[11]),
+                        inventory, data[2], tool, clothes, json.loads(data[11]),
                         json.loads(data[12]))
 
         return player
+    else:
+        return None
 
 
 def RewritePLayerDataInDB(player_id, player):
@@ -321,3 +325,16 @@ def AddToInventory(player_id, player, item_id_list, amount):
         player.inventory.append(item) # adding new item to the inventory
         RewritePLayerDataInDB(player_id, player)
         return 0 # success
+
+
+def CreateCharacterInfoMessage(player_id):
+    player = GetPlayerFromDB(player_id)
+    res_str = f"```LVL: {player.lvl}```" \
+              f"```EXP: {player.exp} / {1000 + (100 * (1.1**player.lvl) * player.lvl)}```"\
+              f"```HP:  {player.hp} / {player.max_hp}```" \
+              f"```Tool: " + f"{player.tool.GetName() if player.tool is not None else 'Empty'}```" \
+              f"```Clothes:\n" \
+              f"--Head:  {player.clothes['head'].GetName() if player.clothes['head'] is not None else 'Empty'}\n" \
+              f"--Chest: {player.clothes['body'].GetName() if player.clothes['body'] is not None else 'Empty'}\n" \
+              f"--Legs:  {player.clothes['legs'].GetName() if player.clothes['legs'] is not None else 'Empty'}\n```"
+    return res_str

@@ -15,6 +15,9 @@ class ITEM:
 	def get_string(self):
 		return self.__dict__
 
+	def GetName(self):
+		return self.type_.split('.')[1]
+
 
 class FOOD(ITEM):
 	"""for any food item"""
@@ -119,7 +122,7 @@ class HUMAN(ENTITY):
 class PLAYER(HUMAN):
 	"""use it only for players characters"""
 	def __init__(self, hp: int, max_hp: int, lvl: int, type_: str, base_armour: int, stats: dict, name: str,
-				coins: int, inventory: list, tool=None, clothes=None, exp=None,
+				coins: int, inventory: list, exp: int, tool=None, clothes=None,
 				death_debuffs=None, professions=None):
 		HUMAN.__init__(self, hp, max_hp, lvl, type_, base_armour, stats, name, clothes, tool, coins)
 		self.inventory = inventory
