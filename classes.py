@@ -1,3 +1,6 @@
+from typing import *
+
+
 class ITEM:
     """for any object that can be stored in the inventory"""
 
@@ -15,10 +18,12 @@ class ITEM:
         self.lvl = lvl
         "the lvl of this item (1 ,5 , 55, ...)"
 
-    def get_string(self):
+    def get_string(self) -> dict:
+        """Returns all variables dict for this item"""
         return self.__dict__
 
-    def GetName(self):
+    def GetName(self) -> str:
+        """Returns name of this item"""
         return self.type_.split('.')[1]
 
 
@@ -26,7 +31,7 @@ class FOOD(ITEM):
     """for any food item"""
 
     def __init__(self, id_: int, type_: str, rarity: str, amount: int, is_stackable: bool, lvl: int,
-                 amount_hp_reg: int, effect=None):
+                 amount_hp_reg: int, effect: list[dict] = None):
         ITEM.__init__(self, id_, type_, rarity, amount, is_stackable, lvl)
         self.amount_hp_reg = amount_hp_reg
         "the amount of hp that will be healed after using this item (1, 3, 3.5, 20 ...)"
@@ -38,7 +43,7 @@ class POTION(ITEM):
     """for any potion"""
 
     def __init__(self, id_: int, type_: str, rarity: str, amount: int, is_stackable: bool, lvl: int,
-                 ban_use_time: int, toxin_lvl: int, effect: dict):
+                 ban_use_time: int, toxin_lvl: int, effect: list[dict]):
         ITEM.__init__(self, id_, type_, rarity, amount, is_stackable, lvl)
         self.ban_use_time = ban_use_time
         "the timeout of using potion of one type (heal:20, power:10 ....)"
@@ -52,7 +57,8 @@ class EQUIPMENT(ITEM):
     """for anything that can be equip"""
 
     def __init__(self, id_: int, type_: str, rarity: str, amount: int, is_stackable: bool,
-                 lvl: int, is_breakable: bool, durability: int, max_durability: int, enchant=None, bonuses=None):
+                 lvl: int, is_breakable: bool, durability: int, max_durability: int,
+                 enchant: list[dict] = None, bonuses: list[dict] = None):
         ITEM.__init__(self, id_, type_, rarity, amount, is_stackable, lvl)
         self.is_breakable = is_breakable
         "flag for recognize non_breakable item (True, False)"
@@ -69,9 +75,9 @@ class EQUIPMENT(ITEM):
 class TOOL(EQUIPMENT):
     """for any tools like axe, pickaxe, sword, bowl and etc."""
 
-    def __init__(self, id_: int, type_: str, rarity: str, amount: int, is_stackable: bool,
-                 lvl: int, is_breakable: bool, durability: int, max_durability: int, damage: int,
-                 damage_type: str, damage_distance: str, enchant=None, bonuses=None):
+    def __init__(self, id_: int, type_: str, rarity: str, amount: int, is_stackable: bool, lvl: int, is_breakable: bool,
+                 durability: int, max_durability: int, damage: int, damage_type: str, damage_distance: str,
+                 enchant: list[dict] = None, bonuses: list[dict] = None):
         EQUIPMENT.__init__(self, id_, type_, rarity, amount, is_stackable, lvl,
                            is_breakable, durability, max_durability, enchant, bonuses)
         self.damage = damage  # damage that item deals by one hit (2, 15 ,105 ...)
@@ -82,9 +88,9 @@ class TOOL(EQUIPMENT):
 class CLOTHES(EQUIPMENT):
     """for any type of armour and non-armour clothes"""
 
-    def __init__(self, id_: int, type_: str, rarity: str, amount: int, is_stackable: bool,
-                 lvl: int, is_breakable: bool, durability: int, max_durability: int, resist: int, body_part: str,
-                 resist_list=None, enchant=None, bonuses=None):
+    def __init__(self, id_: int, type_: str, rarity: str, amount: int, is_stackable: bool, lvl: int, is_breakable: bool,
+                 durability: int, max_durability: int, resist: int, body_part: str, resist_list: list[dict] = None,
+                 enchant: list[dict] = None, bonuses: list[dict] = None):
         EQUIPMENT.__init__(self, id_, type_, rarity, amount, is_stackable, lvl, is_breakable, durability,
                            max_durability, enchant, bonuses)
         self.resist = resist
@@ -116,7 +122,7 @@ class HUMAN(ENTITY):
     """u can use it for every entities that has body like human and also have some intelligence)"""
 
     def __init__(self, hp: int, max_hp: int, lvl: int, type_: str, base_armour: int, stats: dict, name: str,
-                 clothes: dict, tool, coins: int):
+                 clothes: dict, tool: TOOL, coins: int):
         ENTITY.__init__(self, hp, max_hp, lvl, type_, base_armour, stats)
         self.name = name
         """the name or nickname of this character (Nikol, Neitrem, etc)"""
@@ -131,12 +137,13 @@ class HUMAN(ENTITY):
 class PLAYER(HUMAN):
     """use it only for players characters"""
 
-    def __init__(self, hp: int, max_hp: int, lvl: int, type_: str, base_armour: int, stats: dict, name: str,
-                 coins: int, inventory: list, exp: int, tool, clothes, cur_loc, visited_locs,
-                 death_debuffs=None, professions=None):
+    def __init__(self, hp: int, max_hp: int, lvl: int, type_: str, base_armour: int, stats: dict, name: str, coins: int,
+                 inventory: list[Union[FOOD, POTION, CLOTHES, TOOL]], exp: int, clothes: dict, cur_loc: str,
+                 visited_locs: dict, tool: Optional[TOOL] = None, death_debuffs: list[dict] = None,
+                 professions: list[dict] = None):
         HUMAN.__init__(self, hp, max_hp, lvl, type_, base_armour, stats, name, clothes, tool, coins)
         self.inventory = inventory
-        """the list of items that player has now ({{name: apple, ...}, {name: sword, ...}, ...}, ...)"""
+        """the list of class objects [ITEM] that player has now ([class obj Apple, class obj, Potion, etc])"""
         self.exp = exp
         """the current amount of lvl points (123 ,450, ...)"""
         self.death_debuffs = death_debuffs
@@ -148,7 +155,8 @@ class PLAYER(HUMAN):
         self.visited_locs = visited_locs
         """dict with visited locs and visiting time for each loc"""
 
-    def CreateCharacterInfoMessage(self):
+    def CreateCharacterInfoMessage(self) -> str:
+        """Returns message with character main info formatted for discord"""
         res_str = f"```LVL: {self.lvl}```" \
                   f"```EXP: {self.exp} / {1000 + (100 * (1.1 ** self.lvl) * self.lvl)}```" \
                   f"```HP:  {self.hp} / {self.max_hp}```" \
@@ -159,7 +167,8 @@ class PLAYER(HUMAN):
 				  f"--Legs:  {self.clothes['legs'].GetName() if self.clothes['legs'] is not None else 'Empty'}\n```"
         return res_str
 
-    def CreateInventoryListMessage(self, page=1):
+    def CreateInventoryListMessage(self, page=1) -> str:
+        """Returns message with list of ITEMs from inventory formatted for discord"""
         item_count = 0
         if len(self.inventory) <= (page - 1) * 10:
             return 'No more item!'
@@ -175,7 +184,7 @@ class PLAYER(HUMAN):
 
 class MOB(ENTITY):
     def __init__(self, hp: int, max_hp: int, lvl: int, type_: str, base_armour: int, stats: dict, damage_type: str,
-                 resist_list: dict):
+                 resist_list: list[dict]):
         ENTITY.__init__(self, hp, max_hp, lvl, type_, base_armour, stats)
         self.damage_type = damage_type
         """the damage type that this mob deal (slash, crush, ...)"""
@@ -187,8 +196,8 @@ class ANIMAL(MOB):
     """use it for any animals"""
 
     def __init__(self, hp: int, max_hp: int, lvl: int, type_: str, base_armour: int, stats: dict, damage_type: str,
-                 resist_type: dict, agro: bool):
-        MOB.__init__(self, hp, max_hp, lvl, type_, base_armour, stats, damage_type, resist_type)
+                 resist_list: list[dict], agro: bool):
+        MOB.__init__(self, hp, max_hp, lvl, type_, base_armour, stats, damage_type, resist_list)
         self.agro = agro
         """the flag for recognize aggressive or not animals"""
 
@@ -197,5 +206,5 @@ class MONSTER(MOB):
     """use it for always aggressive creatures and some other strange things"""
 
     def __init__(self, hp: int, max_hp: int, lvl: int, type_: str, base_armour: int, stats: dict, damage_type: str,
-                 resist_type: dict):
-        MOB.__init__(self, hp, max_hp, lvl, type_, base_armour, stats, damage_type, resist_type)
+                 resist_list: list[dict]):
+        MOB.__init__(self, hp, max_hp, lvl, type_, base_armour, stats, damage_type, resist_list)

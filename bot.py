@@ -2,12 +2,20 @@ import discord
 from discord.ext import commands
 from main import *
 
+
 token = open('token.txt', 'r').readline().split('=')[1]
 bot = commands.Bot(command_prefix='!')
 
-SUCCESS = discord.Color.from_rgb(0, 255, 0)
-INFO = discord.Color.from_rgb(169, 169, 169)
-WARN = discord.Color.from_rgb(255, 165, 0)
+SUCCESS: Final = discord.Color.from_rgb(0, 255, 0)
+INFO: Final = discord.Color.from_rgb(169, 169, 169)
+WARN: Final = discord.Color.from_rgb(255, 165, 0)
+
+WARN_TEXT: Final = {
+    'eqvt': "Wrong command form please type `!eqvt [place of the tool in your inventory]`",
+    'eqvc': "Wrong command form please type `!eqvc [place of the clothes in your inventory]`",
+    'deqvc': "Wrong command form please type `!deqvc [body part (head, body, legs)]`",
+    'deqvt': "Wrong command form please type `!deqvt` without any additions"
+}
 
 
 @bot.event
@@ -53,38 +61,53 @@ async def _ShowInventory(ctx, arg=1):
 
 @bot.command(name='eqvt')
 async def _EquipTool(ctx, num=None):
-    player = GetPlayerFromDB(ctx.author.id)
-    res, text = EquipTool(ctx.author.id, player, int(num)-1)
-    if res == 0:
-        emb = discord.Embed(color=SUCCESS)
+    if num is not None:
+        player = GetPlayerFromDB(ctx.author.id)
+        res, text = EquipTool(ctx.author.id, player, int(num)-1)
+        if res == 0:
+            emb = discord.Embed(color=SUCCESS)
+        else:
+            emb = discord.Embed(color=WARN)
+        emb.add_field(name=f'Event info: ', value=text)
+        await ctx.send(embed=emb)
     else:
         emb = discord.Embed(color=WARN)
-    emb.add_field(name=f'Event info: ', value=text)
-    await ctx.send(embed=emb)
+        emb.add_field(name=f'Event info: ', value=WARN_TEXT['eqvt'])
+        await ctx.send(embed=emb)
 
 
 @bot.command(name='eqvc')
 async def _EquipClothes(ctx, num=None):
-    player = GetPlayerFromDB(ctx.author.id)
-    res, text = EquipClothes(ctx.author.id, player, int(num) - 1)
-    if res == 0:
-        emb = discord.Embed(color=SUCCESS)
+    if num is not None:
+        player = GetPlayerFromDB(ctx.author.id)
+        res, text = EquipClothes(ctx.author.id, player, int(num) - 1)
+        if res == 0:
+            emb = discord.Embed(color=SUCCESS)
+        else:
+            emb = discord.Embed(color=WARN)
+        emb.add_field(name=f'Event info: ', value=text)
+        await ctx.send(embed=emb)
     else:
         emb = discord.Embed(color=WARN)
-    emb.add_field(name=f'Event info: ', value=text)
-    await ctx.send(embed=emb)
+        emb.add_field(name=f'Event info: ', value=WARN_TEXT['eqvc'])
+        await ctx.send(embed=emb)
 
 
 @bot.command(name='deqvc')
 async def _dEquipClothes(ctx, body_part=None):
-    player = GetPlayerFromDB(ctx.author.id)
-    res, text = DeEquipClothes(ctx.author.id, player, body_part)
-    if res == 0:
-        emb = discord.Embed(color=SUCCESS)
+    if body_part is not None:
+        player = GetPlayerFromDB(ctx.author.id)
+        res, text = DeEquipClothes(ctx.author.id, player, body_part)
+        if res == 0:
+            emb = discord.Embed(color=SUCCESS)
+        else:
+            emb = discord.Embed(color=WARN)
+        emb.add_field(name=f'Event info: ', value=text)
+        await ctx.send(embed=emb)
     else:
         emb = discord.Embed(color=WARN)
-    emb.add_field(name=f'Event info: ', value=text)
-    await ctx.send(embed=emb)
+        emb.add_field(name=f'Event info: ', value=WARN_TEXT['deqvc'])
+        await ctx.send(embed=emb)
 
 
 @bot.command(name='deqvt')
