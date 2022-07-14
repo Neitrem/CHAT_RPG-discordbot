@@ -87,7 +87,7 @@ def RewritePLayerDataInDB(player_id: int, player: PLAYER) -> NoReturn:
     player_bytes = pickle.dumps(player)
 
     # Change data for row where id equal to 'player_id'
-    sql.execute('''UPDATE users SET data_b = ? WHERE id = ?;''', (player_bytes, player_id))
+    sql.execute('''UPDATE users_data SET data_b = ? WHERE id = ?;''', (player_bytes, player_id))
 
     # Confirm changes in db
     db.commit()
